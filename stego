@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+
+if (@ARGV != 1){print"Need argument:\n";exit(1);}
+$BMP = shift @ARGV;
+open BMP or die "$!";
+read BMP, $bmp, -s $BMP;
+
+$width = unpack("L", substr($bmp, 18, 4));
+$height = unpack("L", substr($bmp, 22, 4));
+$rowbytes=(int($width*3/4)+((int $width*3/4 == $width*3/4 )?0:1))*4;
+$offset = unpack("L", substr($bmp, 10, 4));
+@colors = grep {$_ != 0} unpack("C*", substr($bmp, $offset, ($rowbytes*$height)));
+
+foreach(@colors){   $counter++;
+    if ($capturing){$capturing++;
+        $capturing <= 10? next : ($capturing=0);
+    }
+    if($_ & 1){my $char;
+        $capturing = 1;
+        foreach(@colors[$counter...$counter+7]){
+            ($_ & 1)?($char.=1):($char.=0);
+        }$msg .= chr(unpack("C8",pack("B8",$char)));
+    }
+}
+print $msg;
